@@ -1,0 +1,124 @@
+import numpy as np
+from shapely.geometry import Polygon
+
+def area(x, y):
+    polygon = Polygon(
+        np.stack([x, y], axis=1)
+    )
+
+    return float(polygon.area)
+
+def approx_area_of_intersection(
+        det_x,
+        det_y,
+        gt_x,
+        gt_y):
+
+    det_ymax = np.max(det_y)
+    det_xmax = np.max(det_x)
+
+    det_ymin = np.min(det_y)
+    det_xmin = np.min(det_x)
+
+    gt_ymax = np.max(gt_y)
+    gt_xmax = np.max(gt_x)
+
+    gt_ymin = np.min(gt_y)
+    gt_xmin = np.min(gt_x)
+
+    all_min_ymax = np.minimum(det_ymax, gt_ymax)
+
+    all_max_ymin = np.maximum(det_ymin, gt_ymin)
+
+    intersect_heights = np.maximum(
+        0.0,
+        (all_min_ymax - all_max_ymin)
+    )
+
+    all_min_xmax = np.minimum(det_xmax, gt_xmax)
+
+    all_max_xmin = np.maximum(det_xmin, gt_xmin)
+
+    intersect_widths = np.maximum(
+        0.0,
+        (all_min_xmax - all_max_xmin)
+    )
+
+    return intersect_heights * intersect_widths
+
+def area_of_intersection(
+        det_x,
+        det_y,
+        gt_x,
+        gt_y):
+    """
+    """
+
+    # detection polygon
+    p1 = Polygon(
+        np.stack([det_x, det_y], axis=1)
+    ).buffer(0)
+
+    # annotation polygon
+    p2 = Polygon(
+        np.stack([gt_x, gt_y], axis=1)
+    ).buffer(0)
+
+    # intersection area
+    return float(
+        p1.intersection(p2).area
+    )
+
+
+def area_of_union(
+        det_x,
+        det_y,
+        gt_x,
+        gt_y):
+    """
+    """
+
+    # detection polygon
+    p1 = Polygon(
+        np.stack([det_x, det_y], axis=1)
+    ).buffer(0)
+
+    # annotation polygon
+    p2 = Polygon(
+        np.stack([gt_x, gt_y], axis=1)
+    ).buffer(0)
+
+    # union area
+    return float(
+        p1.union(p2).area
+    )
+
+def iou(det_x, det_y, gt_x, gt_y):
+
+    return area_of_intersection(
+        det_x,
+        det_y,
+        gt_x,
+        gt_y
+    ) / (
+        area_of_union(
+            det_x,
+            det_y,
+            gt_x,
+            gt_y
+        ) + 1.0
+    )
+
+def iod(det_x, det_y, gt_x, gt_y):
+
+    return area_of_intersection(
+        det_x,
+        det_y,
+        gt_x,
+        gt_y
+    ) / (
+        area(
+            det_x,
+            det_y
+        ) + 1.0
+    )
